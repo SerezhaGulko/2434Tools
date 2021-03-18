@@ -5,4 +5,38 @@
 <div class="text-center">
     <h1 class="display-4">Welcome</h1>
     <p>Learn about <a href="https://docs.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+   @*@{ 
+        // ChannelList Example
+        var chanelList = ViewData["resp"] as Google.Apis.YouTube.v3.Data.ChannelListResponse;
+    }
+    @foreach (var channel in chanelList.Items)
+    {
+        @chanelList.
+        @channel.ContentDetails.RelatedPlaylists.Uploads
+        <h2>@channel.Snippet.Title</h2>
+        <div>Subscount  = @channel.Statistics.SubscriberCount</div>
+        <div>VideoCount = @channel.Statistics.VideoCount</div>
+        <div>ViewCount  = @channel.Statistics.ViewCount</div>
+        <div>@channel.Snippet.Thumbnails.Default__.Url</div>
+        <img src="@channel.Snippet.Thumbnails.Default__.Url" />
+        <br />
+    }*@
+
+    @*@{ 
+        // PlayListItems example
+        var playList = ViewData["resp"] as Google.Apis.YouTube.v3.Data.PlaylistItemListResponse;
+    }
+    <div class="card-group">
+    @foreach(var playlistItem in playList.Items.OrderBy(_item => _item.ContentDetails.VideoPublishedAt))
+    {
+        <div class="card" style="min-width: 18rem">
+            <img src="@playlistItem.Snippet.Thumbnails.High.Url" class="card-img-top"/>
+            <div class="card-body">
+                <a href="https://www.youtube.com/watch?v=@playlistItem.ContentDetails.VideoId" class="card-title">@playlistItem.Snippet.Title</a>
+                <h2 class="card-text">@playlistItem.ContentDetails.VideoPublishedAt</h2>
+                <h2 class="card-text">@playlistItem.Snippet.Position</h2>
+            </div>
+        </div>
+    }
+    </div>*@
 </div>

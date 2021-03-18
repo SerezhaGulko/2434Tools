@@ -5,4 +5,8 @@
     <RootNamespace>_2434Tools</RootNamespace>
   </PropertyGroup>
 
+  <ItemGroup>
+    <PackageReference Include="Google.Apis.YouTube.v3" Version="1.50.0.2238" />
+  </ItemGroup>
+
 </Project>
