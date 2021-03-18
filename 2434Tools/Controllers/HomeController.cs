@@ -23,7 +23,7 @@ namespace _2434Tools.Controllers
 
         public async Task<IActionResult> Index()
         {
-            const String API_KEY        = "AIzaSyCdxyAf_rhOZuJGS3lns922KnKKR24XR4o";
+            const String API_KEY        = "API_KEY";
             var youtubeService = new YouTubeService(new BaseClientService.Initializer()
             {
                 ApiKey = API_KEY,
