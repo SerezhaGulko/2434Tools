@@ -1,0 +1,13 @@
+﻿@{
+    ViewData["Title"] = "Delete";
+}
+
+<form method="post" class="col-sm-6 col-12">
+    <div class="form-group mx-sm-3 mb-2" style="margin-left: 0!important">
+        <label>Name</label>
+    </div>
+    <div class="form-group mx-sm-3 mb-2" style="margin-left: 0!important">
+        <input type="text" readonly class="form-control" value="@ViewBag.Group.Name"/>
+    </div>
+    <button asp-action="Delete" asp-route-id="@ViewBag.Group.Id" type="submit" class="btn btn-danger mb-2">Delete</button>
+</form>

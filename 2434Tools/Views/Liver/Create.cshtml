@@ -1,0 +1,53 @@
+﻿@model _2434Tools.Models.ViewModels.LiverViewModel
+@{
+    ViewData["Title"] = "Creating a Liver";
+}
+
+<form method="post">
+    <div class="form-horizontal">
+        <input type="hidden" asp-for="Graduated" />
+        <hr />
+        <div class="form-group">
+            <label asp-for="Name" class="col-md-2 control-label"></label>
+            <div class="col-md-10">
+                <input asp-for="Name" class="form-control" />
+                <span asp-validation-for="Name" class="text-danger"></span>
+            </div>
+        </div>
+        <div class="form-group">
+            <label asp-for="ChannelId" class="col-md-2 control-label"></label>
+            <div class="col-md-10">
+                <input asp-for="ChannelId" class="form-control" />
+                <span asp-validation-for="ChannelId" class="text-danger"></span>
+            </div>
+        </div>
+        <div class="form-group">
+            <label asp-for="TwitterLink" class="col-md-2 control-label">Twitter Link</label>
+            <div class="col-md-10">
+                <input asp-for="TwitterLink" class="form-control" />
+                <span asp-validation-for="TwitterLink" class="text-danger"></span>
+            </div>
+        </div>
+        <div class="form-group">
+            <label asp-for="GroupId" class="col-md-2 control-label"></label>
+            <div class="col-md-10">
+                <select asp-for="GroupId" class="form-control" asp-items="@ViewBag.Groups"></select>
+                <span asp-validation-f  or="GroupId" class="text-danger"></span>
+            </div>
+        </div>
+        <div class="form-group">
+            <div class="col-md-2"></div>
+            <div class="col-md-10">
+                <button asp-action="Create" type="submit" class="btn btn-primary mb-2">Create</button>
+            </div>
+        </div>
+    </div>
+    <style>
+        .input-validation-error {
+            border-color: orangered;
+        }
+    </style>
+</form>
+@section Scripts {
+    @{ await Html.RenderPartialAsync("_ValidationScriptsPartial"); }
+}

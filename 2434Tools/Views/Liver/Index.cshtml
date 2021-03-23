@@ -1,0 +1,30 @@
+﻿@{ 
+    ViewData["Title"] = "Moderating Livers";
+}
+
+<div class="container">
+    <a asp-action="Create">Create new</a>
+    <table class="table table-light">
+        <thead class="thead-light">
+            <tr>
+                <th></th>
+                <th>Name</th>
+                <th>Channel Id</th>
+                <th></th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var Liver in ViewBag.Livers)
+            {
+            <tr class="d-table-row">
+                <td></td>
+                <td>@Liver.Name</td>
+                <td>@Liver.ChannelId</td>
+                <td><a asp-action="Edit" asp-route-id="@Liver.Id">Edit</a></td>
+                <td><a asp-action="Delete" asp-route-id="@Liver.Id">Delete</a></td>
+            </tr>
+            }
+        </tbody>
+    </table>
+</div>
