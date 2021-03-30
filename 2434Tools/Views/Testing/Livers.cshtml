@@ -1,0 +1,17 @@
+﻿
+<div class="card-group">
+    @foreach(_2434Tools.Models.Liver liver in ViewBag.livers)
+    {
+        <div class="card" style="min-width: 18rem">
+            <img src="@liver.PictureURL" class="card-img-top" />
+            <div class="card-body">
+                <h2 class="card-title">@liver.ChannelName</h2>
+                <div class="justify-content-around card-text d-flex">
+                    <h4>@liver.Subscribers subscribers</h4>
+                    <h4>@liver.Views views</h4>
+                </div>
+                <div class="card-text">@liver.Description</div>
+            </div>
+        </div>
+    }
+</div>

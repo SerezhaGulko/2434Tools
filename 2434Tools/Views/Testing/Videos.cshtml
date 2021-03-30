@@ -1,0 +1,12 @@
+﻿
+<div>
+    <ul class="list-inline">
+    @foreach(_2434Tools.Models.Video video in ViewBag.videos)
+    {
+        <li class="list-inline-item">
+            <img src="https://img.youtube.com/vi/@video.Id/default.jpg" style="height: 120px; width: auto"/>
+            <h3>@video.Id</h3>
+        </li>
+    }
+    </ul>
+</div>
