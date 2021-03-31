@@ -24,6 +24,7 @@ namespace _2434Tools.Services
         private Timer _LiverUpdateTimer;
         private Timer _FeedUpdateTimer;
         private Timer _VideoUpdateTimer;
+        private Boolean isUpdatingFeed = false;
 
         public BackgroundUpdateService(IServiceScopeFactory scopeFactory, ILogger<BackgroundUpdateService> logger)
         {
@@ -105,54 +106,74 @@ namespace _2434Tools.Services
                         _logger.LogInformation($"An exception has occured in UpdateLivers. Mesasge = {e.Message}");
                     }
                 }
-                await _db.SaveChangesAsync();
+                try
+                {
+                    await _db.SaveChangesAsync();
+                } catch(Exception ex)
+                {
+                    _logger.LogInformation($"Database update failed. Reason: {ex.Message}");
+                }
             }
             _logger.LogInformation("Background service has finished updating livers.");
         }
 
         private async void UpdateFeed(object state)
         {
-            _logger.LogInformation("Background service is updating feeds...");
-            using (var scope = _scopeFactory.CreateScope())
+            if (!isUpdatingFeed)
             {
-                var _db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-                var updateQueue = await _db.Livers.Where(_liver => !_liver.Graduated)
-                                            .OrderBy(_liver => _liver.FeedChecked)
-                                            .Take(Variables.UpdateFeedBatch).ToListAsync();
-                List<Task<List<String>>> responses = new List<Task<List<String>>>(updateQueue.Count);
-                for(int i = 0; i < updateQueue.Count; i++)
+                isUpdatingFeed = true;
+                _logger.LogInformation("Background service is updating feeds...");
+                using (var scope = _scopeFactory.CreateScope())
                 {
-                    responses.Add(GetVideosIds(updateQueue[i].ChannelId));
-                }
-                for(int i = 0; i < updateQueue.Count; i++)
-                {
-                    List<String> response = await responses[i];
-                    if(response == null || response.Count == 0)
+                    var _db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+                    var updateQueue = await _db.Livers.Where(_liver => !_liver.Graduated)
+                                                .OrderBy(_liver => _liver.FeedChecked)
+                                                .Take(Variables.UpdateFeedBatch).ToListAsync();
+                    List<Task<List<String>>> responses = new List<Task<List<String>>>(updateQueue.Count);
+                    for (int i = 0; i < updateQueue.Count; i++)
                     {
-                        if (response != null && response.Count == 0)
-                            _logger.LogInformation("No videoIds were returned in UpdateFeed");
-                        goto next_iteration;
-                    } 
-                    var found_videos = await _db.Videos
-                        .Where(_video =>
-                            _video.LiverId == updateQueue[i].Id &&
-                            response.Contains(_video.Id)
-                        ).ToListAsync();
+                        responses.Add(GetVideosIds(updateQueue[i].ChannelId));
+                    }
+                    DateTime updateTime = DateTime.UtcNow;
+                    for (int i = 0; i < updateQueue.Count; i++)
+                    {
+                        List<String> response = await responses[i];
+                        if (response == null || response.Count == 0)
+                        {
+                            if (response != null && response.Count == 0)
+                                _logger.LogInformation("No videoIds were returned in UpdateFeed");
+                            goto next_iteration;
+                        }
+                        var found_videos = await _db.Videos
+                            .Where(_video =>
+                                _video.LiverId == updateQueue[i].Id &&
+                                response.Contains(_video.Id)
+                            ).ToListAsync();
 
-                    foreach(var video in found_videos)
-                    {
-                        if (video.Status == VideoStatus.Unavailable)
-                            video.Status = VideoStatus.Undefined;
+                        foreach (var video in found_videos)
+                        {
+                            if (video.Status == VideoStatus.Unavailable)
+                                video.Status = VideoStatus.Undefined;
+                        }
+                        foreach (var videoId in response.Where(_videoId => found_videos.All(_found => _found.Id != _videoId)))
+                        {
+                            _db.Add(new Video() { Id = videoId, LiverId = updateQueue[i].Id });
+                        }
+                    next_iteration:;
+                        updateQueue[i].FeedChecked = updateTime;
                     }
-                    foreach(var videoId in response.Where(_videoId => found_videos.All(_found => _found.Id != _videoId)))
+                    try
                     {
-                        _db.Add(new Video() { Id = videoId, LiverId = updateQueue[i].Id });
+                        await _db.SaveChangesAsync();
                     }
-                next_iteration:;
+                    catch (Exception ex)
+                    {
+                        _logger.LogInformation($"Database update failed. Reason: {ex.Message}");
+                    }
                 }
-                await _db.SaveChangesAsync();
+                _logger.LogInformation("Background service has finished updating feeds.");
+                isUpdatingFeed = false;
             }
-            _logger.LogInformation("Background service has finished updating feeds.");
         }
 
         private async void UpdateVideos(object state)
