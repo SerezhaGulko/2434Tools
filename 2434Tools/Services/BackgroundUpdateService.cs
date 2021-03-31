@@ -100,6 +100,7 @@ namespace _2434Tools.Services
                             {
                                 Liver.PictureURL = channel.Snippet.Thumbnails.Default__.Url;
                             }
+                            Liver.ThumbURL  = channel.Snippet.Thumbnails.Default__.Url;
                         }
                     } catch(Exception e)
                     {
