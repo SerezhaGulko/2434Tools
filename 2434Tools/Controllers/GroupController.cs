@@ -12,7 +12,6 @@ using System.Threading.Tasks;
 
 namespace _2434Tools.Controllers
 {
-    //[Authorize]
     public class GroupController : Controller
     {
         #region Declarations
@@ -27,6 +26,7 @@ namespace _2434Tools.Controllers
         #region Index
         public async Task<IActionResult> Index()
         {
+            if (!_permissions.IsAdmin()) return this.NotFound();
             var Groups = await _context.Groups.ToListAsync();
             ViewBag.Groups = Groups;
             return this.View();
@@ -35,12 +35,14 @@ namespace _2434Tools.Controllers
         #region Create
         public IActionResult Create()
         {
+            if (!_permissions.IsAdmin()) return this.NotFound();
             return this.View(new GroupViewModel());
         }
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(GroupViewModel model)
         {
+            if (!_permissions.IsAdmin()) return this.NotFound();
             if (ModelState.IsValid)
             {
                 var Group = new Group()
@@ -57,6 +59,7 @@ namespace _2434Tools.Controllers
         #region Edit
         public async Task<IActionResult> Edit(Int32 id)
         {
+            if (!_permissions.IsAdmin()) return this.NotFound();
             var Group = await _context.Groups.SingleOrDefaultAsync(_group => _group.Id == id);
             if (Group == null) return this.NotFound();
             ViewBag.id = id;
@@ -66,6 +69,7 @@ namespace _2434Tools.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(Int32 id, GroupViewModel model)
         {
+            if (!_permissions.IsAdmin()) return this.NotFound();
             var Group = await _context.Groups.SingleOrDefaultAsync(_group => _group.Id == id);
             if (Group == null) return this.NotFound();
             if (ModelState.IsValid)
@@ -81,6 +85,7 @@ namespace _2434Tools.Controllers
         #region Delete
         public async Task<IActionResult> Delete(Int32 id)
         {
+            if (!_permissions.IsAdmin()) return this.NotFound();
             var Group = await _context.Groups.SingleOrDefaultAsync(_group => _group.Id == id);
             if (Group == null) return this.NotFound();
             ViewBag.Group = Group;
@@ -90,6 +95,7 @@ namespace _2434Tools.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteSingle(Int32 id)
         {
+            if (!_permissions.IsAdmin()) return this.NotFound();
             var Group = await _context.Groups.SingleOrDefaultAsync(_group => _group.Id == id);
             if (Group == null) return this.NotFound();
             _context.Remove(Group);

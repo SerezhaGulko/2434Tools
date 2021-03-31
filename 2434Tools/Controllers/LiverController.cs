@@ -13,7 +13,6 @@ using System.Threading.Tasks;
 
 namespace _2434Tools.Controllers
 {
-    //[Authorize]
     public class LiverController : Controller
     {
         #region Declarations
@@ -44,6 +43,7 @@ namespace _2434Tools.Controllers
         #region Create
         public async Task<IActionResult> Create()
         {
+            if (!_permissions.IsAdmin()) return this.NotFound();
             ViewBag.Groups = new SelectList(await _context.Groups.ToListAsync(), "Id", "Name");
             return this.View(new LiverViewModel() { Graduated = false });
         }
@@ -51,7 +51,8 @@ namespace _2434Tools.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(LiverViewModel model)
         {
-            if(ModelState.IsValid)
+            if (!_permissions.IsAdmin()) return this.NotFound();
+            if (ModelState.IsValid)
             {
                 var Liver = new Liver()
                 {
@@ -72,6 +73,7 @@ namespace _2434Tools.Controllers
         #region Edit
         public async Task<IActionResult> Edit(Int32 id)
         {
+            if (!_permissions.IsAdmin()) return this.NotFound();
             var Liver = await _context.Livers.SingleOrDefaultAsync(_liver => _liver.Id == id);
             if (Liver == null) return this.NotFound();
             var Groups = await _context.Groups.ToListAsync();
@@ -82,7 +84,8 @@ namespace _2434Tools.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(Int32 id, LiverViewModel model)
-        { 
+        {
+            if (!_permissions.IsAdmin()) return this.NotFound();
             var Liver = await _context.Livers.SingleOrDefaultAsync(_liver => _liver.Id == id);
             if (Liver == null) return this.NotFound();
             if (ModelState.IsValid)
@@ -101,6 +104,7 @@ namespace _2434Tools.Controllers
         #region Delete
         public async Task<IActionResult> Delete(Int32 id)
         {
+            if (!_permissions.IsAdmin()) return this.NotFound();
             var Liver = await _context.Livers.SingleOrDefaultAsync(_liver => _liver.Id == id);
             if (Liver == null) return this.NotFound();
             ViewBag.Liver = Liver;
@@ -110,6 +114,7 @@ namespace _2434Tools.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteSingle(Int32 id)
         {
+            if (!_permissions.IsAdmin()) return this.NotFound();
             var Liver = await _context.Livers.SingleOrDefaultAsync(_liver => _liver.Id == id);
             if (Liver == null) return this.NotFound();
             _context.Remove(Liver);

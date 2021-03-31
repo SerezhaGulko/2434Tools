@@ -1,4 +1,5 @@
-﻿using _2434ToolsUser.Data;
+﻿using _2434Tools.Data;
+using _2434ToolsUser.Data;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using System;
@@ -17,6 +18,11 @@ namespace _2434Tools.Services
         {
             this._httpContext   = httpContextAccessor.HttpContext;
             this._userManager   = userManager;
+        }
+
+        public bool IsAdmin()
+        {
+            return this._httpContext.User.IsInRole(ApplicationRoles.Administrators);
         }
     }
 }

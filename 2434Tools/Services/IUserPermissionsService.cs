@@ -7,5 +7,6 @@ namespace _2434Tools.Services
 {
     public interface IUserPermissionsService
     {
+        Boolean IsAdmin();
     }
 }
