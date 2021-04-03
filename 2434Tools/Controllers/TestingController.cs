@@ -18,7 +18,7 @@ namespace _2434Tools.Controllers
 
         public async Task<IActionResult> Videos()
         {
-            var videos = await _context.Videos.ToListAsync();
+            var videos = await _context.Videos.Include(_v => _v.Creator).ToListAsync();
             ViewBag.videos = videos;
             return this.View();
         }

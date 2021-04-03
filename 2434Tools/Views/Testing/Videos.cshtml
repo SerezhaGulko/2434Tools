@@ -1,12 +1,29 @@
-﻿
+﻿@using _2434Tools.Data;
 <div>
-    <ul class="list-inline">
-    @foreach(_2434Tools.Models.Video video in ViewBag.videos)
-    {
-        <li class="list-inline-item">
-            <img src="https://img.youtube.com/vi/@video.Id/default.jpg" style="height: 120px; width: auto"/>
-            <h3>@video.Id</h3>
-        </li>
+    <div class="card-group">
+    @{ 
+        var videos = ViewBag.videos as ICollection<Video>;
+        var ordered = videos.OrderByDescending(_v => _v.LiveStartTime.HasValue).OrderByDescending(_v => _v.LiveStartTime);
     }
-    </ul>
+    @foreach(_2434Tools.Models.Video video in ordered)
+    {
+        <div class="card" style="min-width: 20rem">
+            <img src="@video.PictureUrl" class="card-img-top"/>
+            <h4 class="card-header">@video.Title by @video.Creator.Name</h4>
+            <h4 class="card-header">Status: @video.Status.ToString()</h4>
+            <div class="card-text">Views: @video.Views</div>
+            <div class="card-text">Duration: @video.Duration</div>
+            @if (video.LiveStartTime != null)
+            {
+            <div class="card-text">
+                <div>@video.LiveStartTime</div>
+                @if(video.LiveEndTime != null)
+                {
+                    <div>@video.LiveEndTime</div>
+                }
+            </div>
+            }
+        </div>
+    }
+    </div>
 </div>

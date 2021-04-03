@@ -13,6 +13,7 @@ using Google.Apis.Services;
 using Microsoft.EntityFrameworkCore;
 using System.Net.Http;
 using System.Text.RegularExpressions;
+using System.Xml;
 
 namespace _2434Tools.Services
 {
@@ -41,8 +42,8 @@ namespace _2434Tools.Services
                 TimeSpan.FromSeconds(60.0d * Variables.UpdateLiverInterval));
             _FeedUpdateTimer = new Timer(UpdateFeed, null, TimeSpan.Zero,
                 TimeSpan.FromSeconds(60.0d * Variables.UpdateFeedInterval));
-           // _VideoUpdateTimer = new Timer(UpdateVideos, null, TimeSpan.Zero,
-           //     TimeSpan.FromSeconds(60.0d * Variables.UpdateVideoInterval));
+            _VideoUpdateTimer = new Timer(UpdateVideos, null, TimeSpan.Zero,
+                TimeSpan.FromSeconds(60.0d * Variables.UpdateVideoInterval));
 
             return Task.CompletedTask;
         }
@@ -179,7 +180,117 @@ namespace _2434Tools.Services
 
         private async void UpdateVideos(object state)
         {
-            throw new NotImplementedException();
+            _logger.LogInformation("Background service is updating videos...");
+            var youtubeService = new YouTubeService(new BaseClientService.Initializer()
+            {
+                ApiKey = Variables.API_KEY,
+                ApplicationName = this.GetType().ToString()
+            });
+            using (var scope = _scopeFactory.CreateScope())
+            {
+                var _db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+                
+                var videos = await _db.Videos.Where(_v =>   _v.Status == VideoStatus.Live 
+                                                        ||  _v.Status == VideoStatus.Upcoming 
+                                                        ||  _v.Status == VideoStatus.Undefined).ToListAsync();
+
+                Int32 k_groups = (videos.Count + 49) / 50;
+                List<Task<Google.Apis.YouTube.v3.Data.VideoListResponse>>
+                    requests = new List<Task<Google.Apis.YouTube.v3.Data.VideoListResponse>>(k_groups);
+                for (int i = 0; i < k_groups; i++) requests.Add(null);
+                for (int i = 0; i < k_groups; i++)
+                {
+                    int _start = 50 * i, _end = Math.Min(_start + 50, videos.Count);
+                    var videos_request = youtubeService.Videos.List("snippet,statistics,contentDetails,liveStreamingDetails,status");
+                    String VideoIds = videos[_start].Id;
+                    for (int j = _start + 1; j < _end; j++)
+                    {
+                        VideoIds += "," + videos[j].Id;
+                    }
+                    videos_request.MaxResults = 50;
+                    videos_request.Id = VideoIds;
+                    requests[i] = videos_request.ExecuteAsync();
+                }
+                for (int i = 0; i < k_groups; i ++)
+                {
+                    try
+                    {
+                        foreach (var response in (await requests[i]).Items)
+                        {
+                            String id = response.Id;
+                            var video = videos.Single(_video => _video.Id == id);
+                            video.Title = response.Snippet.Title;
+                            video.Description = response.Snippet.Description;
+                            video.Published = response.Snippet.PublishedAt;
+                            if (response.ContentDetails.Duration != null) 
+                            {
+                                video.Duration = (uint)(XmlConvert.ToTimeSpan(response.ContentDetails.Duration)).TotalSeconds;
+                            }
+                            video.Views = (uint)response.Statistics.ViewCount;
+                            if(response.LiveStreamingDetails != null)
+                            {
+                                if (response.LiveStreamingDetails.ActualStartTime != null)
+                                {
+                                    video.LiveStartTime = response.LiveStreamingDetails.ActualStartTime;
+                                    if (response.LiveStreamingDetails.ActualEndTime != null)
+                                    {
+                                        video.LiveEndTime = response.LiveStreamingDetails.ActualEndTime;
+                                        video.Status = VideoStatus.Finished;
+                                    } else
+                                        video.Status = VideoStatus.Live;
+
+                                    video.Viewers = (uint)(response.LiveStreamingDetails.ConcurrentViewers ?? 0);
+                                    video.PeakViewers = Math.Max(video.Viewers, video.PeakViewers);
+
+                                } else {
+                                    // YouTube is sometimes insane and LiveStreamingDetails is not 
+                                    if(response.LiveStreamingDetails.ScheduledStartTime != null)
+                                    { 
+                                        video.LiveStartTime = response.LiveStreamingDetails.ScheduledStartTime;
+                                        video.Status = VideoStatus.Upcoming;
+                                    }
+                                }
+                            } else {
+                                video.Status = VideoStatus.Finished;
+                            }
+
+                            var thumbs = response.Snippet.Thumbnails;
+                            if(thumbs.Maxres != null)
+                            {
+                                video.PictureUrl = thumbs.Maxres.Url;
+                            } else if(thumbs.Standard != null)
+                            {
+                                video.PictureUrl = thumbs.Standard.Url;
+                            } else if(thumbs.High != null)
+                            {
+                                video.PictureUrl = thumbs.High.Url;
+                            } else if(thumbs.Medium != null)
+                            {
+                                video.PictureUrl = thumbs.Medium.Url;
+                            } else if(thumbs.Default__ != null)
+                            {
+                                video.PictureUrl = thumbs.Default__.Url;
+                            }
+                            if(video.PictureUrl == null && response.Status.PrivacyStatus != "private")
+                            {
+                                video.Status = VideoStatus.Undefined;
+                            }
+                        }
+                    } catch(Exception ex)
+                    {
+                        _logger.LogInformation($"An exception has occured in UpdateVideos. Mesasge = {ex.Message}");
+                    }
+                }
+                try
+                {
+                    await _db.SaveChangesAsync();
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogInformation($"Database update failed. Reason: {ex.Message}");
+                }
+            }
+            _logger.LogInformation("Background service has finished updating videos.");
         }
 
         private async Task<List<String>> GetVideosIds(String channelId)
