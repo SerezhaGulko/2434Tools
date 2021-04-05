@@ -26,6 +26,16 @@
                         </li>
                     </ul>
                 </div>
+                @if (User.IsInRole(_2434Tools.Data.ApplicationRoles.Administrators))
+                {
+                <ul class="navbar-nav navbar-collapse collapse flex-grow-0 align-items-baseline">
+                    <li class="nav-item">
+                        <form id="formSignOut" class="form-inline" asp-controller="Account" asp-action="Logout" method="post">
+                            <button id="signOut" type="submit" class="nav-link btn btn-link text-dark">Sign out</button>
+                        </form>
+                    </li>
+                </ul>
+                }
             </div>
         </nav>
     </header>
