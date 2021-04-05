@@ -8,30 +8,109 @@
     {
     <a asp-action="Create">Create new</a>
     }
-    <table class="table table-light">
-        <thead class="thead-light">
-            <tr>
-                <th></th>
-                <th>Name</th>
-                <th>Channel Id</th>
-                <th></th>
-                <th></th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var Liver in ViewBag.Livers)
-            {
-            <tr class="d-table-row">
-                <td></td>
-                <td>@Liver.Name</td>
-                <td>@Liver.ChannelId</td>
-                @if (isAdmin)
-                {
-                <td><a asp-action="Edit" asp-route-id="@Liver.Id">Edit</a></td>
-                <td><a asp-action="Delete" asp-route-id="@Liver.Id">Delete</a></td>
-                }
-            </tr>
-            }
-        </tbody>
-    </table>
+    @{ 
+        int i = 0;
+    }
+    @foreach (var Group in ViewBag.GroupLivers)
+    {
+        if (Group.Livers.Count == 0) continue;
+        i++;
+        String id = "groupCollapse" + i.ToString();
+        <h4 class="list-group-item liver-group-collapse no-select justify-content-between d-flex" type="button" data-toggle="collapse" data-target="#@id">
+            @Group.Name
+            <img class="togglable-icon" src="~/icons/up-arrow-svgrepo-com.svg" style="width: 28px; height: 28px;" />
+        </h4>
+        <ul class="list-group collapse show liver-group-collapsable no-select" id="@id">
+        @foreach (var Liver in Group.Livers)
+        {
+                Int32 subs = (int)Liver.Subscribers;
+                String subscribers = subs >= 1000000 ? ((subs / 100000) / 10.0).ToString("", System.Globalization.CultureInfo.InvariantCulture) + "M"
+                                    : (subs >= 1000 ? $"{subs / 1000}K" : $"{subs}");
+
+            <li class="list-group-item d-flex flex-column flex-sm-row list-liver">
+                <a class="stretched-link" asp-action="Index" asp-route-id="@Liver.Id"></a>
+                <div class="col-12 col-sm-6 mr-auto d-flex flex-row">
+                    <div class="flex-column"></div>
+                    <img src="@Liver.ThumbURL" class="list-liver-image" />
+                    <div class="flex-column pl-3">
+                        <div class="font-weight-bold">@Liver.Name</div>
+                        <div>@subscribers subscribers</div>
+                    </div>
+                </div>
+                <div class="p-0 d-flex mt-sm-0 mt-4 ml-sm-0 ml-2 d-flex justify-content-sm-center justify-content-start align-items-center">
+                    <div class="link-icon-small">
+                        <a class="stretched-link" href="https://youtube.com/channel/@Liver.ChannelId"></a>
+                        <img src="~/icons/youtube.svg" style="width: 26px; height: 26px"/>
+                    </div>
+                    <div class="link-icon-small">
+                        <a class="stretched-link" href="https://www.twitter.com/@Liver.TwitterLink"></a>
+                        <img src="~/icons/twitter.svg" style="width: 26px; height: 26px"/>
+                    </div>
+                </div>
+            </li>
+        }
+        </ul>
+    }
 </div>
+
+<style>
+    .no-select {
+        user-select: none;
+    }
+    .list-liver-image {
+        width: 4rem;
+        height: 4rem;
+        border-radius: 2rem;
+    }
+    .list-liver {
+        border-radius: 1rem;
+    }
+    .list-liver .font-weight-bold {
+        font-size: 1.3rem;
+    }
+    .liver-group-collapse, .list-liver {
+        background-color: white;
+        transition: background-color 0.3s ease;
+    }
+    .list-group-collapse:hover, .list-liver:hover {
+        background-color: aliceblue;
+    }
+    .list-group-collapse:active, .list-liver:active {
+        background-color: skyblue;
+    }
+    .link-icon-small {
+        position: relative;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin-left: 0.2rem;
+        margin-right: 0.2rem;
+        width: 42px;
+        height: 42px;
+        border-radius: 21px;
+        background-color: transparent;
+        transition: background-color 0.3s ease;
+    }
+    .link-icon-small:hover {
+        background-color: rgba(0, 0, 0, 0.4);
+    }
+    .link-icon-small:active {
+        background-color: rgba(0,0,0, 0.8);
+    }
+    .togglable-icon {
+        transition: transform 0.3s ease;
+    }
+    .togglable-icon.contract {
+        transform: rotate(-180deg);
+    }
+</style>
+@section Scripts {
+<script>
+    $('.liver-group-collapsable').on('show.bs.collapse', (event) => {
+        event.currentTarget.previousElementSibling.lastElementChild.classList.remove('contract');
+    });
+    $('.liver-group-collapsable').on('hide.bs.collapse', (event) => {
+        event.currentTarget.previousElementSibling.lastElementChild.classList.add('contract');;
+    });
+</script>
+}

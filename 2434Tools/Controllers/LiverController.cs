@@ -30,8 +30,8 @@ namespace _2434Tools.Controllers
         public async Task<IActionResult> Index(Int32? id)
         {
             if (id != null) return this.RedirectToAction("Details", new { id });
-            var Livers = await _context.Livers.ToListAsync();
-            ViewBag.Livers = Livers;
+            var GroupLivers = await _context.Groups.Include(_group => _group.Livers).ToListAsync();
+            ViewBag.GroupLivers = GroupLivers;
             return this.View();
         }
         // Details
