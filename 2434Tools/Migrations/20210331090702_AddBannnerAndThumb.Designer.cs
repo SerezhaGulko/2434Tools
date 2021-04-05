@@ -3,15 +3,17 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using _2434Tools.Data;
 
 namespace _2434Tools.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20210331090702_AddBannnerAndThumb")]
+    partial class AddBannnerAndThumb
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -172,6 +174,9 @@ namespace _2434Tools.Migrations
                         .HasColumnType("int")
                         .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
+                    b.Property<string>("BannerURL")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("ChannelId")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -231,10 +236,10 @@ namespace _2434Tools.Migrations
                     b.Property<long>("Duration")
                         .HasColumnType("bigint");
 
-                    b.Property<DateTime?>("LiveEndTime")
+                    b.Property<DateTime>("LiveEndTime")
                         .HasColumnType("datetime2");
 
-                    b.Property<DateTime?>("LiveStartTime")
+                    b.Property<DateTime>("LiveStartTime")
                         .HasColumnType("datetime2");
 
                     b.Property<int>("LiverId")
@@ -246,7 +251,7 @@ namespace _2434Tools.Migrations
                     b.Property<string>("PictureUrl")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<DateTime?>("Published")
+                    b.Property<DateTime>("Published")
                         .HasColumnType("datetime2");
 
                     b.Property<int>("Status")

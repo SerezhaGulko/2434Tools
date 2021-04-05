@@ -11,6 +11,7 @@ namespace _2434Tools.Models
         public String ChannelId { get; set; }
         public String UploadsId { get; set; }
         public String PictureURL { get; set; }
+        public String ThumbURL { get; set; }
         public String Name { get; set; }
         public String ChannelName { get; set; }
         public String Description { get; set; }

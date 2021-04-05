@@ -10,6 +10,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Google.Apis.Services;
+using Google.Apis.YouTube.v3;
 
 namespace _2434Tools.Controllers
 {
@@ -18,7 +20,7 @@ namespace _2434Tools.Controllers
         #region Declarations
         readonly ApplicationDbContext _context;
         readonly IUserPermissionsService _permissions;
-        public LiverController(ApplicationDbContext context,IUserPermissionsService permissions)
+        public LiverController(ApplicationDbContext context, IUserPermissionsService permissions)
         {
             this._context = context;
             this._permissions = permissions;
@@ -56,15 +58,21 @@ namespace _2434Tools.Controllers
             {
                 var Liver = new Liver()
                 {
-                    ChannelId   = model.ChannelId,
-                    Name        = model.Name,
-                    Graduated   = model.Graduated,
-                    GroupId     = model.GroupId,
+                    ChannelId = model.ChannelId,
+                    Name = model.Name,
+                    Graduated = model.Graduated,
+                    GroupId = model.GroupId,
                     TwitterLink = model.TwitterLink
                 };
-                _context.Add(Liver);
-                await _context.SaveChangesAsync();
-                return this.RedirectToAction("Index");
+                if (await AddLiverInfo(Liver))
+                {
+                    _context.Add(Liver);
+                    await _context.SaveChangesAsync();
+                    return this.RedirectToAction("Index");
+                } else
+                {
+                    ModelState.AddModelError("ChannelId", "Make sure channel's Id is correct!");
+                }
             }
             ViewBag.Groups = new SelectList(await _context.Groups.ToListAsync(), "Id", "Name", model.GroupId);
             return this.View(model);
@@ -79,7 +87,7 @@ namespace _2434Tools.Controllers
             var Groups = await _context.Groups.ToListAsync();
             ViewBag.Groups = new SelectList(Groups, "Id", "Name", Groups.Where(_group => _group.Id == Liver.GroupId));
             return this.View(new LiverViewModel()
-            { Graduated = Liver.Graduated, GroupId = Liver.GroupId, Name = Liver.Name, TwitterLink = Liver.TwitterLink,ChannelId = Liver.ChannelId });
+            { Graduated = Liver.Graduated, GroupId = Liver.GroupId, Name = Liver.Name, TwitterLink = Liver.TwitterLink, ChannelId = Liver.ChannelId });
         }
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -120,6 +128,47 @@ namespace _2434Tools.Controllers
             _context.Remove(Liver);
             await _context.SaveChangesAsync();
             return this.RedirectToAction("Index");
+        }
+        #endregion
+        #region Helpers
+        private async Task<Boolean> AddLiverInfo(Liver liver)
+        {
+            var youtubeService = new YouTubeService(new BaseClientService.Initializer()
+            {
+                ApiKey = Variables.API_KEY,
+                ApplicationName = this.GetType().ToString()
+            });
+            var channel_request = youtubeService.Channels.List("snippet, statistics");
+            channel_request.Id = liver.ChannelId;
+            try
+            {
+                var response = (await channel_request.ExecuteAsync()).Items[0];
+                liver.ChannelName = response.Snippet.Title;
+                liver.Description = response.Snippet.Description;
+                liver.Subscribers = (uint)response.Statistics.SubscriberCount;
+                liver.Views = (ulong)response.Statistics.ViewCount;
+                if (response.Snippet.Thumbnails.Standard != null)
+                {
+                    liver.PictureURL = response.Snippet.Thumbnails.Standard.Url;
+                }
+                else if (response.Snippet.Thumbnails.High != null)
+                {
+                    liver.PictureURL = response.Snippet.Thumbnails.High.Url;
+                }
+                else if (response.Snippet.Thumbnails.Medium != null)
+                {
+                    liver.PictureURL = response.Snippet.Thumbnails.Medium.Url;
+                }
+                else if (response.Snippet.Thumbnails.Default__ != null)
+                {
+                    liver.PictureURL = response.Snippet.Thumbnails.Default__.Url;
+                }
+                liver.ThumbURL = response.Snippet.Thumbnails.Default__.Url;
+            } catch(NullReferenceException)
+            {
+                return false;
+            }
+            return true;
         }
         #endregion
     }
