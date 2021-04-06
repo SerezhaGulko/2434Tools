@@ -1,0 +1,96 @@
+﻿@{
+    ViewData["Title"] = ViewBag.Liver.Name;
+    bool isAdmin = User.IsInRole(_2434Tools.Data.ApplicationRoles.Administrators);
+}
+
+<div class="banner-hide d-flex justify-content-center">
+    <img class="single-liver-image" src="@ViewBag.Liver.PictureURL" />
+</div>
+<h4 class="text-center pt-5">@ViewBag.Liver.Name / @ViewBag.Liver.ChannelName</h4>
+<div class="list-group-item mb-5">
+    <div class="d-flex flex-row">
+        <div class="link-icon-small">
+            <a class="stretched-link" href="https://youtube.com/channel/@ViewBag.Liver.ChannelId"></a>
+            <img src="~/icons/youtube.svg" style="width: 24px; height: 24px"/>
+        </div>
+        <div class="link-icon-small">
+            <a class="stretched-link" href="https://twitter.com/@ViewBag.Liver.TwitterLink"></a>
+            <img src="~/icons/twitter.svg" style="width: 24px; height: 24px"/>
+        </div>
+    </div>
+</div>
+<div class="card-group">
+@foreach (_2434Tools.Models.Video Video in ViewBag.Videos)
+{
+    DateTime date = Video.LiveStartTime.HasValue ? Video.LiveStartTime.Value : Video.Published.Value;
+    <div class="col-md-4 col-sm-6 col-12 pb-4">
+        <div class="card">
+            <div class="position-relative video-picture-effect">
+                <img class="card-img-top" src="@Video.PictureUrl" style="" />
+                <a class="stretched-link" href="https://youtube.com/watch/@Video.Id"></a>
+            </div>
+            <div class="card-body">
+                @if (Video.Status == VideoStatus.Live)
+                {
+                <div class="d-flex align-items-center flex-gap mb-1">
+                    <img src="~/icons/eye-red-svgrepo-com.svg" class="views-icon" />
+                    <span style="color: var(--yt-live)">@Video.Viewers / @Video.PeakViewers</span>
+                </div>
+                <div class="live-icon no-select">LIVE NOW!</div>
+                }
+                    <h5 class="card-title">@Video.Title</h5>
+                    <div class="d-flex justify-content-between">
+                    <span class="card-text video-date">@date.Year @(date.Month-1) @date.Day @date.Hour @date.Minute</span>
+                @if(Video.Status == VideoStatus.Finished)
+                {
+                    <div class="d-flex align-items-center flex-gap">
+                        <img src="~/icons/eye-black-svgrepo-com.svg" class="views-icon"/>
+                        <span>@Video.Views</span>
+                    </div>
+                }
+                </div>
+                </div>
+        </div>
+    </div>
+}
+</div>
+
+@section Scripts {
+<script>
+    var DateNow = new Date();
+    const Divisors =
+        [1000 * 3600 * 24 * 365.2422, 1000 * 3600 * 24 * 30.42, 1000 * 3600 * 24 * 7,
+            1000 * 3600 * 24, 1000 * 3600, 1000 * 60]
+    $('.video-date').each((idx, elem) => {
+        var LocalDate = new Date(Date.UTC(...elem.innerText.split(' ')));
+        var DateDiff = DateNow - LocalDate;
+        var AbsDiff = Math.abs(DateDiff);
+        [Years, Months, Weeks, Days, Hours, Minutes]
+            = [AbsDiff, AbsDiff, AbsDiff, AbsDiff, AbsDiff, AbsDiff].map((val, idx) => {
+                return Math.floor(val / Divisors[idx]);
+            });
+        n = "";
+        // Can be simplified
+        if (Years >= 1) {
+            n = `${Years} ${Years == 1? "year" : "years"}`
+        } else if (Months >= 1) {
+            n = `${Months} ${Months == 1 ? "month" : "months"}`
+        } else if (Weeks >= 1) {
+            n = `${Weeks} ${Weeks == 1 ? "week" : "weeks"}`
+        } else if (Days >= 1) {
+            n = `${Days} ${Days == 1 ? "day" : "days"}`
+        } else if (Hours >= 1) {
+            n = `${Hours} ${Hours == 1 ? "hour" : "hours"}`
+        } else if (Minutes >= 1) {
+            n = `${Minutes} ${Minutes == 1 ? "minute" : "minutes"}`
+        } else {
+            n = "Just a few seconds";
+        }
+        if (DateDiff < 0) {
+            elem.innerText = "Live in " + n;
+        } else {
+            elem.innerText = n + " ago"
+        }
+    })
+</script>
+}

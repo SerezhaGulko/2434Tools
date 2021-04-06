@@ -231,10 +231,10 @@ namespace _2434Tools.Services
                             {
                                 if (response.LiveStreamingDetails.ActualStartTime != null)
                                 {
-                                    video.LiveStartTime = response.LiveStreamingDetails.ActualStartTime;
+                                    video.LiveStartTime = response.LiveStreamingDetails.ActualStartTime.Value.ToUniversalTime();
                                     if (response.LiveStreamingDetails.ActualEndTime != null)
                                     {
-                                        video.LiveEndTime = response.LiveStreamingDetails.ActualEndTime;
+                                        video.LiveEndTime = response.LiveStreamingDetails.ActualEndTime.Value.ToUniversalTime();
                                         video.Status = VideoStatus.Finished;
                                     } else
                                         video.Status = VideoStatus.Live;
@@ -246,7 +246,7 @@ namespace _2434Tools.Services
                                     // YouTube is sometimes insane and LiveStreamingDetails is not 
                                     if(response.LiveStreamingDetails.ScheduledStartTime != null)
                                     { 
-                                        video.LiveStartTime = response.LiveStreamingDetails.ScheduledStartTime;
+                                        video.LiveStartTime = response.LiveStreamingDetails.ScheduledStartTime.Value.ToUniversalTime();
                                         video.Status = VideoStatus.Upcoming;
                                     }
                                 }
