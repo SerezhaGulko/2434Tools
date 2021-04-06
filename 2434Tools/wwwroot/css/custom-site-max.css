@@ -1,0 +1,66 @@
+﻿:root {
+    --accent-light-color: rgba(29,161,242, 0.2);
+    --accent-medium-color: lemonchiffon;
+}
+
+.no-select {
+    user-select: none;
+}
+
+.list-liver-image {
+    width: 4rem;
+    height: 4rem;
+    border-radius: 2rem;
+}
+
+.list-liver {
+    border-radius: 1rem;
+}
+
+    .list-liver .font-weight-bold {
+        font-size: 1.3rem;
+    }
+
+.liver-group-collapse, .list-liver {
+    background-color: white;
+    transition: background-color 0.3s ease;
+}
+
+    .liver-group-collapse:hover, .list-liver:hover {
+        background-color: var(--accent-light-color);
+    }
+
+    .liver-group-collapse:active {
+        background-color: var(--accent-medium-color);
+        transition: background-color 0s;
+    }
+
+.link-icon-small {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-left: 0.2rem;
+    margin-right: 0.2rem;
+    width: 42px;
+    height: 42px;
+    border-radius: 21px;
+    background-color: transparent;
+    transition: background-color 0.3s;
+}
+
+    .link-icon-small:hover {
+        background-color: rgba(0, 0, 0, 0.2);
+    }
+
+    .link-icon-small:active {
+        background-color: rgba(0,0,0, 0.8);
+    }
+
+.togglable-icon {
+    transition: transform 0.3s ease;
+}
+
+    .togglable-icon.contract {
+        transform: rotate(-180deg);
+    }
