@@ -16,11 +16,11 @@
         if (Group.Livers.Count == 0) continue;
         i++;
         String id = "groupCollapse" + i.ToString();
-        <h4 class="list-group-item liver-group-collapse no-select justify-content-between d-flex" type="button" data-toggle="collapse" data-target="#@id">
+        <h4 class="list-group-item liver-group-collapse justify-content-between d-flex" type="button" data-toggle="collapse" data-target="#@id">
             @Group.Name
             <img class="togglable-icon" src="~/icons/up-arrow-svgrepo-com.svg" style="width: 28px; height: 28px;" />
         </h4>
-        <ul class="list-group collapse show liver-group-collapsable no-select" id="@id">
+        <ul class="list-group collapse show liver-group-collapsable" id="@id">
         @foreach (var Liver in Group.Livers)
         {
                 Int32 subs = (int)Liver.Subscribers;
