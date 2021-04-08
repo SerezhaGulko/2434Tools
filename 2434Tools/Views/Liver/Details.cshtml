@@ -41,7 +41,7 @@
 <div class="card-group">
     @foreach (_2434Tools.Models.Video Video in ViewBag.Videos)
     {
-        DateTime date = Video.LiveStartTime.HasValue ? Video.LiveStartTime.Value : (Video.Published.HasValue? Video.Published.Value : DateTime.UtcNow);
+        DateTime date = Video.LiveStartTime.HasValue ? Video.LiveStartTime.Value : (Video.Published.HasValue ? Video.Published.Value : DateTime.UtcNow);
         <div class="col-md-4 col-sm-6 col-12 pb-4">
             <div class="card">
                 <div class="position-relative video-picture-effect">
@@ -75,41 +75,5 @@
 </div>
 
 @section Scripts {
-    <script>
-        var DateNow = new Date();
-        const Divisors =
-            [1000 * 3600 * 24 * 365.2422, 1000 * 3600 * 24 * 30.42, 1000 * 3600 * 24 * 7,
-            1000 * 3600 * 24, 1000 * 3600, 1000 * 60]
-        $('.video-date').each((idx, elem) => {
-            var LocalDate = new Date(Date.UTC(...elem.innerText.split(' ')));
-            var DateDiff = DateNow - LocalDate;
-            var AbsDiff = Math.abs(DateDiff);
-            [Years, Months, Weeks, Days, Hours, Minutes]
-                = [AbsDiff, AbsDiff, AbsDiff, AbsDiff, AbsDiff, AbsDiff].map((val, idx) => {
-                    return Math.floor(val / Divisors[idx]);
-                });
-            n = "";
-            // Can be simplified
-            if (Years >= 1) {
-                n = `${Years} ${Years == 1 ? "year" : "years"}`
-            } else if (Months >= 1) {
-                n = `${Months} ${Months == 1 ? "month" : "months"}`
-            } else if (Weeks >= 1) {
-                n = `${Weeks} ${Weeks == 1 ? "week" : "weeks"}`
-            } else if (Days >= 1) {
-                n = `${Days} ${Days == 1 ? "day" : "days"}`
-            } else if (Hours >= 1) {
-                n = `${Hours} ${Hours == 1 ? "hour" : "hours"}`
-            } else if (Minutes >= 1) {
-                n = `${Minutes} ${Minutes == 1 ? "minute" : "minutes"}`
-            } else {
-                n = "Just a few seconds";
-            }
-            if (DateDiff < 0) {
-                elem.innerText = "Live in " + n;
-            } else {
-                elem.innerText = n + " ago"
-            }
-        })
-    </script>
+     <script type="text/javascript" src="~/js/UtcToLocal.js"></script>
 }
