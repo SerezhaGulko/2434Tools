@@ -159,7 +159,7 @@ namespace _2434Tools.Services
                         }
                         foreach (var videoId in response.Where(_videoId => found_videos.All(_found => _found.Id != _videoId)))
                         {
-                            _db.Add(new Video() { Id = videoId, LiverId = updateQueue[i].Id });
+                            _db.Add(new Video() { Id = videoId, LiverId = updateQueue[i].Id, Status = VideoStatus.Undefined });
                         }
                     next_iteration:;
                         updateQueue[i].FeedChecked = updateTime;
@@ -221,7 +221,7 @@ namespace _2434Tools.Services
                             var video = videos.Single(_video => _video.Id == id);
                             video.Title = response.Snippet.Title;
                             video.Description = response.Snippet.Description;
-                            video.Published = response.Snippet.PublishedAt;
+                            video.Published = response.Snippet.PublishedAt?.ToUniversalTime();
                             if (response.ContentDetails.Duration != null) 
                             {
                                 video.Duration = (uint)(XmlConvert.ToTimeSpan(response.ContentDetails.Duration)).TotalSeconds;
@@ -231,10 +231,10 @@ namespace _2434Tools.Services
                             {
                                 if (response.LiveStreamingDetails.ActualStartTime != null)
                                 {
-                                    video.LiveStartTime = response.LiveStreamingDetails.ActualStartTime;
+                                    video.LiveStartTime = response.LiveStreamingDetails.ActualStartTime.Value.ToUniversalTime();
                                     if (response.LiveStreamingDetails.ActualEndTime != null)
                                     {
-                                        video.LiveEndTime = response.LiveStreamingDetails.ActualEndTime;
+                                        video.LiveEndTime = response.LiveStreamingDetails.ActualEndTime.Value.ToUniversalTime();
                                         video.Status = VideoStatus.Finished;
                                     } else
                                         video.Status = VideoStatus.Live;
@@ -245,8 +245,8 @@ namespace _2434Tools.Services
                                 } else {
                                     // YouTube is sometimes insane and LiveStreamingDetails is not 
                                     if(response.LiveStreamingDetails.ScheduledStartTime != null)
-                                    { 
-                                        video.LiveStartTime = response.LiveStreamingDetails.ScheduledStartTime;
+                                    {
+                                        video.LiveStartTime = response.LiveStreamingDetails.ScheduledStartTime.Value.ToUniversalTime();
                                         video.Status = VideoStatus.Upcoming;
                                     }
                                 }
