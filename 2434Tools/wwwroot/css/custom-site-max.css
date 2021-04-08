@@ -70,7 +70,7 @@
     background-size: cover;
     width: 100%;
     min-height: 12rem;
-    boder-radius: 1rem;
+    border-radius: 1rem;
     height: 10%;
 }
 .single-liver-image {
@@ -118,4 +118,7 @@
 }
 .flex-gap > * + * {
     margin-left: 0.5rem;
+}
+.breadcrumb {
+    background-color: var(--accent-light-color);
 }

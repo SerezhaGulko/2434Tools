@@ -2,16 +2,16 @@
     ViewData["Title"] = "Moderating Groups";
 }
 
-<div class="container">
-    <div>
+<div class="container" style="font-size: 1.2rem">
+    <div class="mb-2">
         <a asp-action="Create">Create a group</a>
     </div>
     @foreach (_2434Tools.Models.Group group in ViewBag.Groups)
-    {   <div class="row justify-content-sm-around justify-content-center mb-2">
+    {<div class="row justify-content-sm-around justify-content-center align-items-center mb-2 breadcrumb">
             <h5 class="col-sm-10 col-6">@group.Name</h5>
-            <div class="col-sm-2 col-12">
+            <div class="col-sm-2 col-12 flex-gap">
                 <a asp-action="Edit" asp-route-id="@group.Id">Edit</a>
-                <a asp-action="Delete" asp-route-id="@group.Id">Delete</a>
+                <a asp-action="Delete" asp-route-id="@group.Id" class="text-danger">Delete</a>
             </div>
         </div>
     }
