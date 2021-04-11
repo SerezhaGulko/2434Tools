@@ -2,7 +2,6 @@
 @{
     ViewData["Title"] = "Live";
 }
-@*!!! REMOVE SPAN AS IT CAUSES STRETCHED LINK TO NOT FUNCTION PROPERLY*@
 <div class="text-center">
     <h1 class="display-4">Live</h1>
     <hr />
@@ -13,17 +12,29 @@
             <div class="col-lg-4 col-sm-6 col-12 pb-4">
                 <div class="card">
                     <div class="position-relative video-picture-effect">
+                        @*
+                        Requires Updating time on timer
+                        @{
+                            UInt32 duration = (UInt32)(DateTime.UtcNow - date).TotalSeconds;
+                            UInt32 hrs_fix = duration / 3600;
+                            String hrs = hrs_fix == 0? "" : hrs_fix.ToString() + ":",
+                                minutes = ((duration / 60) % 60).ToString().PadLeft(2, '0') + ":",
+                                seconds = (duration  % 60).ToString().PadLeft(2, '0');
+
+                        }
+                        <div class="video-duration red-text">@hrs@minutes@seconds</div>
+                        *@
                         <img class="card-img-top" src="@liveVideo.PictureUrl" />
                         <a class="stretched-link" href="https://youtube.com/watch/@liveVideo.Id"></a>
                     </div>
                     <div class="card-body">
                         <h5 class="card-title">@liveVideo.Title</h5>
-                        <div style="text-align: start" class="flex-gap">
-                            <span class="position-relative">
+                        <div class="d-flex align-items-center">
+                            <div class="position-relative video-liver-snippet mr-3">
                                 <a asp-action="Index" asp-controller="Liver" asp-route-id="@liveVideo.Creator.Id" class="stretched-link" tabindex="-1"></a>
                                 <img src="@liveVideo.Creator.ThumbURL" style="height: 3rem; width: 3rem; border-radius: 1.5rem;" class="red" />
-                            </span>
-                            <a asp-action="Index" asp-controller="Liver" asp-route-id="@liveVideo.Creator.Id">@liveVideo.Creator.Name</a>
+                            </div>
+                            <a asp-action="Index" asp-controller="Liver" asp-route-id="@liveVideo.Creator.Id" class="video-liver-name">@liveVideo.Creator.Name</a>
                         </div>
                         <hr />
                         <div class="d-flex align-items-center justify-content-between mb-1">
@@ -64,12 +75,12 @@
                         </div>
                         <div class="card-body">
                             <h5 class="card-title">@upcomingVideo.Title</h5>
-                            <div style="text-align: start" class="flex-gap">
-                                <span class="position-relative">
+                            <div class="d-flex align-items-center">
+                                <div class="position-relative video-liver-snippet mr-3">
                                     <a asp-action="Index" asp-controller="Liver" asp-route-id="@upcomingVideo.Creator.Id" class="stretched-link" tabindex="-1"></a>
                                     <img src="@upcomingVideo.Creator.ThumbURL" style="height: 3rem; width: 3rem; border-radius: 1.5rem;" />
-                                </span>
-                                <a asp-action="Index" asp-controller="Liver" asp-route-id="@upcomingVideo.Creator.Id">@upcomingVideo.Creator.Name</a>
+                                </div>
+                                <a asp-action="Index" asp-controller="Liver" asp-route-id="@upcomingVideo.Creator.Id" class="video-liver-name">@upcomingVideo.Creator.Name</a>
                             </div>
                             <hr />
                             <span class="card-text video-date">@date.Year @(date.Month - 1) @date.Day @date.Hour @date.Minute</span>
@@ -90,17 +101,25 @@
                 <div class="col-lg-4 col-sm-6 col-12 pb-4">
                     <div class="card">
                         <div class="position-relative video-picture-effect">
+                            @if (newVideo.Duration != 0)
+                            {
+                                UInt32 hrs_fix = newVideo.Duration / 3600;
+                                String hrs = hrs_fix == 0? "" : hrs_fix.ToString() + ":",
+                                    minutes = ((newVideo.Duration / 60) % 60).ToString().PadLeft(2, '0') + ':',
+                                    seconds = (newVideo.Duration % 60).ToString().PadLeft(2, '0');
+                                <div class="video-duration">@hrs@minutes@seconds</div>
+                            }
                             <img class="card-img-top" src="@newVideo.PictureUrl" />
                             <a class="stretched-link" href="https://youtube.com/watch/@newVideo.Id"></a>
                         </div>
                         <div class="card-body">
                             <h5 class="card-title">@newVideo.Title</h5>
-                            <div style="text-align: start" class="flex-gap">
-                                <span class="position-relative">
+                            <div class="d-flex align-items-center">
+                                <div class="position-relative video-liver-snippet mr-3">
                                     <a asp-action="Index" asp-controller="Liver" asp-route-id="@newVideo.Creator.Id" class="stretched-link" tabindex="-1"></a>
                                     <img src="@newVideo.Creator.ThumbURL" style="height: 3rem; width: 3rem; border-radius: 1.5rem;" />
-                                </span>
-                                <a asp-action="Index" asp-controller="Liver" asp-route-id="@newVideo.Creator.Id">@newVideo.Creator.Name</a>
+                                </div>
+                                <a asp-action="Index" asp-controller="Liver" asp-route-id="@newVideo.Creator.Id" class="video-liver-name">@newVideo.Creator.Name</a>
                             </div>
                             <hr />
                             <div class="d-flex justify-content-between">
@@ -120,22 +139,3 @@
 @section Scripts {
     <script type="text/javascript" src="~/js/UtcToLocal.js"></script>
 }
-<style>
-    span > img.red {
-        box-sizing: content-box;
-        box-shadow: rgba(204, 0, 0, 0.2) 0px 0px 4px 4px;
-    }
-    span > img {
-        box-sizing: content-box;
-        box-shadow: var(--accent-light-color) 0px 0px 4px 4px;
-    }
-    .flex-gap > a {
-        color: var(--accent-light-color);
-        color: rgba(204, 0, 0, 1);
-        color: rgba(0, 0,0, 0.5);
-    }
-    .flex-gap > a:hover {
-        text-decoration: none;
-        color: black;
-    }
-</style>
