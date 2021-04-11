@@ -41,10 +41,18 @@
 <div class="card-group">
     @foreach (_2434Tools.Models.Video Video in ViewBag.Videos)
     {
-        DateTime date = Video.LiveStartTime.HasValue ? Video.LiveStartTime.Value : (Video.Published.HasValue ? Video.Published.Value : DateTime.UtcNow);
+        DateTime date = Video.LiveEndTime.HasValue? Video.LiveEndTime.Value : (Video.LiveStartTime.HasValue ? Video.LiveStartTime.Value : (Video.Published.HasValue ? Video.Published.Value : DateTime.UtcNow));
         <div class="col-md-4 col-sm-6 col-12 pb-4">
             <div class="card">
                 <div class="position-relative video-picture-effect">
+                    @if (Video.Duration != 0)
+                    {
+                        UInt32 hrs_fix = Video.Duration / 3600;
+                        String hrs = hrs_fix == 0 ? "" : hrs_fix.ToString() + ":",
+                            minutes = ((Video.Duration / 60) % 60).ToString().PadLeft(2, '0') + ':',
+                            seconds = (Video.Duration % 60).ToString().PadLeft(2, '0');
+                        <div class="video-duration">@hrs@minutes@seconds</div>
+                    }
                     <img class="card-img-top" src="@Video.PictureUrl" />
                     <a class="stretched-link" href="https://youtube.com/watch/@Video.Id"></a>
                 </div>

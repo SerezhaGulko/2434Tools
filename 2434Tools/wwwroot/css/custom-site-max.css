@@ -2,8 +2,8 @@
     --accent-light-color: rgba(29,161,242, 0.2);
     --accent-medium-color: lemonchiffon;
     --yt-live: #c00;
+    --yt-live-trans: rgba(204, 0, 0, 0.2);
 }
-
 .no-select {
     user-select: none;
 }
@@ -121,4 +121,31 @@
 }
 .breadcrumb {
     background-color: var(--accent-light-color);
+}
+
+/* Live List
+------------*/
+.video-liver-snippet > img {
+    box-sizing: content-box;
+    box-shadow: var(--accent-light-color) 0px 0px 4px 4px;
+}
+.video-liver-snippet > img.red {
+    box-shadow: var(--yt-live-trans) 0px 0px 4px 4px;
+}
+.video-liver-name {
+    color: rgba(0, 0,0, 0.5);
+}
+.video-liver-name:hover {
+    text-decoration: none;
+    color: black;
+}
+.video-duration {
+    font-size: 1.2rem;
+    position: absolute;
+    right: 0.2rem;
+    bottom: 0.2rem;
+    padding: 0 0.2rem;
+    color: #f1f1f1;
+    background-color: hsla(0,0%,6.7%,0.8);
+    border-radius: 0.2rem;
 }
