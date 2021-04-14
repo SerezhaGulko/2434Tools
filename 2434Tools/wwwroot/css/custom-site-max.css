@@ -3,6 +3,7 @@
     --accent-medium-color: lemonchiffon;
     --yt-live: #c00;
     --yt-live-trans: rgba(204, 0, 0, 0.2);
+    --yt-live-slightly-trans: rgba(204, 0, 0, 0.8);
 }
 .no-select {
     user-select: none;
@@ -148,4 +149,8 @@
     color: #f1f1f1;
     background-color: hsla(0,0%,6.7%,0.8);
     border-radius: 0.2rem;
+}
+.video-duration.red-text {
+    background-color: var(--yt-live-slightly-trans);
+    color: white;
 }

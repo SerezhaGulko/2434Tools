@@ -12,8 +12,6 @@
             <div class="col-lg-4 col-sm-6 col-12 pb-4">
                 <div class="card">
                     <div class="position-relative video-picture-effect">
-                        @*
-                        Requires Updating time on timer
                         @{
                             UInt32 duration = (UInt32)(DateTime.UtcNow - date).TotalSeconds;
                             UInt32 hrs_fix = duration / 3600;
@@ -23,7 +21,6 @@
 
                         }
                         <div class="video-duration red-text">@hrs@minutes@seconds</div>
-                        *@
                         <img class="card-img-top" src="@liveVideo.PictureUrl" />
                         <a class="stretched-link" href="https://youtube.com/watch/@liveVideo.Id"></a>
                     </div>
@@ -59,10 +56,10 @@
             <h4 class="text-center w-100">No one is streaming at the moment 😰</h4>
         }
     </div>
-    <h1 class="display-4">Upcoming</h1>
-    <hr />
     @if (ViewBag.Upcoming is List<Video> && ViewBag.Upcoming.Count != 0)
     {
+        <h1 class="display-4">Upcoming</h1>
+        <hr />
         <div class="card-group">
             @foreach (Video upcomingVideo in ViewBag.Upcoming)
             {
@@ -90,10 +87,10 @@
             }
         </div>
     }
-    <h1 class="display-4">Latest</h1>
-    <hr />
     @if (ViewBag.New is List<Video> && ViewBag.New.Count != 0)
     {
+        <h1 class="display-4">Latest</h1>
+        <hr />
         <div class="card-group">
             @foreach (Video newVideo in ViewBag.New)
             {
@@ -138,4 +135,21 @@
 </div>
 @section Scripts {
     <script type="text/javascript" src="~/js/UtcToLocal.js"></script>
+    <script>
+        setInterval(function () {
+            var liveDuration = $(".video-duration.red-text");
+            liveDuration.toArray().forEach(elem => {
+                var items = elem.textContent.split(':').map(val => { return parseInt(val); });
+                var hrs = 0, mins, secs;
+                if (items.length == 3) {
+                    [hrs, mins, secs] = items;
+                } else {
+                    [mins, secs] = items;
+                }
+                var time = secs + mins * 60 + hrs * 3600 + 1;
+                elem.textContent =
+                    `${time / 3600 >= 1 ? Math.floor(time / 3600).toString() + ":" : ""}${(Math.floor(time / 60) % 60).toString().padStart(2, '0')}:${(time % 60).toString().padStart(2, '0')}`;
+            });
+        }, 1000);
+    </script>
 }
