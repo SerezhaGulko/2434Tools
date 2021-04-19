@@ -1,0 +1,97 @@
+﻿@{
+    ViewData["Title"] = "MultiView";
+    Layout = "/Views/Shared/_BaseLayout.cshtml";
+}
+<form id="__AntiForgeryForm">
+    @Html.AntiForgeryToken()
+</form>
+<div id="appendix" class="d-flex flex-row box-shadow">
+    @foreach (Video video in ViewBag.Live)
+    {
+        String selected = (ViewBag.Selected == null) ? "" : ViewBag.Selected.Id == video.Id ? "selected" : "";
+        <div class="video-selection @selected" videoid="@video.Id">
+            <img class="list-liver-image" src="@video.Creator.ThumbURL" />
+        </div>
+    }
+</div>
+<div id="player">
+    @if (ViewBag.Selected != null)
+    {
+        <iframe videoid="@ViewBag.Selected.Id" src="https://www.youtube.com/embed/@ViewBag.Selected.Id" 
+        title="YouTube video player" frameborder="0" 
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+    }
+</div>
+<style>
+    #appendix {
+        width: 50%;
+        min-width: 24rem;
+        overflow-x: scroll;
+        padding: 0.5rem 0;
+        border-radius: 0 4rem 4rem 0;
+        display: flex;
+        justify-content: center;
+    }
+    #appendix::-webkit-scrollbar {
+        height: 0.25rem;
+    }
+    #appendix::-webkit-scrollbar-thumb {
+        background: var(--yt-live-slightly-trans);
+    }
+    #appendix::-webkit-scrollbar-track {
+        border-radius: 0.1rem;
+        background: var(--accent-light-color);
+    }
+    body {
+        margin-bottom: 0px;
+    }
+    .list-liver-image {
+        cursor: pointer;
+    }
+    .selected > .list-liver-image {
+        border: solid 1px var(--yt-live-trans);
+        filter: drop-shadow(0px 0px 4px var(--yt-live));
+    }
+    .video-selection {
+        margin-left: 1rem;
+    }
+    #player {
+        height: calc(100vh - 5.25rem);
+        display: flex;
+        flex-flow: row wrap;
+        justify-content: center;
+    }
+    #player > iframe {
+        min-width: 33%;
+        min-height: 25%;
+        height: auto;
+        flex-grow: 1;
+    }
+    @@media screen and (max-width: 575px) {
+        #appendix::-webkit-scrollbar {
+            height: 0.5rem;
+        }
+
+        #player {
+            height: calc(100vh - 5.5rem);
+        }
+    }
+</style>
+@section Scripts {
+    <script src="~/js/MultiViewAjax.js"></script>
+    <script>
+        $("body").on('click', '.video-selection', (event) => {
+            var id = event.currentTarget.getAttribute("videoid");
+            if (id != undefined) {
+                if (!event.currentTarget.classList.contains('selected')) {
+                    event.currentTarget.classList.add('selected');
+                    $(`<iframe videoid="${id}" src="https://www.youtube.com/embed/${id}" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`)
+                        .appendTo('#player');
+                } else {
+                    event.currentTarget.classList.remove('selected');
+                    $(`iframe[videoid=${id}]`).remove();
+                }
+            }
+        })
+    </script>
+}
