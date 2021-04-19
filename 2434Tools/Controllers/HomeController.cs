@@ -11,6 +11,7 @@ using Google.Apis.YouTube.v3;
 using Google.Apis.Services;
 using _2434Tools.Data;
 using Microsoft.EntityFrameworkCore;
+using _2434Tools.Models.ViewModels;
 
 namespace _2434Tools.Controllers
 {
@@ -44,6 +45,30 @@ namespace _2434Tools.Controllers
         public IActionResult Privacy()
         {
             return View();
+        }
+
+        public async Task<IActionResult> MultiView(String withId)
+        {
+            var Live = await _context.Videos.Where(_vid => _vid.Status == VideoStatus.Live)
+                            .Include(_vid => _vid.Creator).ToListAsync();
+            if(!String.IsNullOrEmpty(withId))
+            {
+                ViewBag.Selected = Live.SingleOrDefault(_vid => _vid.Id == withId);
+            }
+            ViewBag.Live = Live;
+            return this.View();
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<JsonResult> LiveVideos()
+        {
+            // We should create a new model for this, containing only harmless data
+            var Live = await _context.Videos.Where(_vid => _vid.Status == VideoStatus.Live)
+                        .Include(_vid => _vid.Creator).ToListAsync();
+            List<AjaxLiveVideo> ToServe = new List<AjaxLiveVideo>(Live.Count);
+            Live.ForEach(_v => ToServe.Add(new AjaxLiveVideo(_v)));
+            return Json(ToServe);
         }
 
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
