@@ -1,9 +1,10 @@
 ﻿@{
     ViewData["Title"] = ViewBag.Liver.Name;
     bool isAdmin = User.IsInRole(_2434Tools.Data.ApplicationRoles.Administrators);
+    String bannerLink = ViewBag.Liver.BannerURL + "=w1280";
 }
 
-<div class="banner-hide d-flex justify-content-center">
+<div class="banner-hide d-flex justify-content-center" style="background-image:url(@bannerLink)">
     <img class="single-liver-image" src="@ViewBag.Liver.PictureURL" />
 </div>
 <h4 class="text-center pt-5">@ViewBag.Liver.Name / @ViewBag.Liver.ChannelName</h4>

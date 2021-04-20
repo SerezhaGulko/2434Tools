@@ -42,7 +42,7 @@ namespace _2434Tools.Services
                 TimeSpan.FromSeconds(60.0d * Variables.UpdateLiverInterval));
             _FeedUpdateTimer = new Timer(UpdateFeed, null, TimeSpan.Zero,
                 TimeSpan.FromSeconds(60.0d * Variables.UpdateFeedInterval));
-            _VideoUpdateTimer = new Timer(UpdateVideos, null, TimeSpan.Zero,
+            _VideoUpdateTimer = new Timer(UpdateVideos, null, TimeSpan.FromSeconds(30.0d),
                 TimeSpan.FromSeconds(60.0d * Variables.UpdateVideoInterval));
 
             return Task.CompletedTask;
@@ -67,7 +67,7 @@ namespace _2434Tools.Services
                 for(int i = 0; i < k_groups; i++)
                 {
                     int _start = i * 50, _end = Math.Min(_start + 50, Livers.Count);
-                    var channel_request = youtubeService.Channels.List("snippet,statistics");
+                    var channel_request = youtubeService.Channels.List("snippet,statistics,brandingSettings");
                     String ChannelIds = Livers[_start].ChannelId;
                     for(int j = _start + 1; j < _end; j++)
                     {
@@ -102,6 +102,10 @@ namespace _2434Tools.Services
                                 Liver.PictureURL = channel.Snippet.Thumbnails.Default__.Url;
                             }
                             Liver.ThumbURL  = channel.Snippet.Thumbnails.Default__.Url;
+                            if(channel.BrandingSettings.Image?.BannerExternalUrl != null)
+                            {
+                                Liver.BannerURL = channel.BrandingSettings.Image.BannerExternalUrl;
+                            }
                         }
                     } catch(Exception e)
                     {
