@@ -1,0 +1,87 @@
+﻿@{
+    ViewData["Title"] = ViewBag.Liver.Name;
+    bool isAdmin = User.IsInRole(_2434Tools.Data.ApplicationRoles.Administrators);
+}
+
+<div class="banner-hide d-flex justify-content-center">
+    <img class="single-liver-image" src="@ViewBag.Liver.PictureURL" />
+</div>
+<h4 class="text-center pt-5">@ViewBag.Liver.Name / @ViewBag.Liver.ChannelName</h4>
+@if (isAdmin)
+{
+    <div style="font-size: 1.2rem">
+        <a class="btn-link" asp-action="Edit" asp-route-id="@ViewBag.Liver.Id">Edit</a>
+        <a class="btn-link text-danger pl-2" asp-action="Delete" asp-route-id="@ViewBag.Liver.Id">Delete</a>
+    </div>
+}
+<div class="list-group-item mb-2">
+    <div class="d-flex flex-row justify-content-between align-items-center">
+        <div>
+            <h4>
+                @ViewBag.Liver.Subscribers subscribers
+            </h4>
+            <hr />
+            <h4>
+                @ViewBag.Liver.Views views
+            </h4>
+        </div>
+        <div class="d-flex flex-row">
+            <div class="link-icon-small">
+                <a class="stretched-link" href="https://youtube.com/channel/@ViewBag.Liver.ChannelId"></a>
+                <img src="~/icons/youtube.svg" style="width: 24px; height: 24px" />
+            </div>
+            <div class="link-icon-small">
+                <a class="stretched-link" href="https://twitter.com/@ViewBag.Liver.TwitterLink"></a>
+                <img src="~/icons/twitter.svg" style="width: 24px; height: 24px" />
+            </div>
+        </div>
+    </div>
+</div>
+<h5 class="breadcrumb mb-5">Videos</h5>
+<div class="card-group">
+    @foreach (_2434Tools.Models.Video Video in ViewBag.Videos)
+    {
+        DateTime date = Video.LiveEndTime.HasValue? Video.LiveEndTime.Value : (Video.LiveStartTime.HasValue ? Video.LiveStartTime.Value : (Video.Published.HasValue ? Video.Published.Value : DateTime.UtcNow));
+        <div class="col-md-4 col-sm-6 col-12 pb-4">
+            <div class="card">
+                <div class="position-relative video-picture-effect">
+                    @if (Video.Duration != 0)
+                    {
+                        UInt32 hrs_fix = Video.Duration / 3600;
+                        String hrs = hrs_fix == 0 ? "" : hrs_fix.ToString() + ":",
+                            minutes = ((Video.Duration / 60) % 60).ToString().PadLeft(2, '0') + ':',
+                            seconds = (Video.Duration % 60).ToString().PadLeft(2, '0');
+                        <div class="video-duration">@hrs@minutes@seconds</div>
+                    }
+                    <img class="card-img-top" src="@Video.PictureUrl" />
+                    <a class="stretched-link" href="https://youtube.com/watch/@Video.Id"></a>
+                </div>
+                <div class="card-body">
+                    @if (Video.Status == VideoStatus.Live)
+                    {
+                        <div class="d-flex align-items-center flex-gap mb-1">
+                            <img src="~/icons/eye-red-svgrepo-com.svg" class="views-icon" />
+                            <span style="color: var(--yt-live)">@Video.Viewers / @Video.PeakViewers</span>
+                        </div>
+                        <div class="live-icon no-select">LIVE NOW!</div>
+                    }
+                    <h5 class="card-title">@Video.Title</h5>
+                    <div class="d-flex justify-content-between">
+                        <span class="card-text video-date">@date.Year @(date.Month-1) @date.Day @date.Hour @date.Minute</span>
+                        @if (Video.Status == VideoStatus.Finished)
+                        {
+                            <div class="d-flex align-items-center flex-gap">
+                                <img src="~/icons/eye-black-svgrepo-com.svg" class="views-icon" />
+                                <span>@Video.Views</span>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@section Scripts {
+     <script type="text/javascript" src="~/js/UtcToLocal.js"></script>
+}

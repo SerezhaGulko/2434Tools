@@ -6,12 +6,13 @@
     <title>@ViewData["Title"] - _2434Tools</title>
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" />
+    <link rel="stylesheet" href="~/css/custom-site-max.css"/>
 </head>
 <body>
     <header>
-        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
+        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3 p-sm-0 p-2">
             <div class="container">
-                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">_2434Tools</a>
+                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">2434Tools</a>
                 <button class="navbar-toggler" type="button" data-toggle="collapse" data-target=".navbar-collapse" aria-controls="navbarSupportedContent"
                         aria-expanded="false" aria-label="Toggle navigation">
                     <span class="navbar-toggler-icon"></span>
@@ -19,23 +20,40 @@
                 <div class="navbar-collapse collapse d-sm-inline-flex flex-sm-row-reverse">
                     <ul class="navbar-nav flex-grow-1">
                         <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
+                            <div>
+                                <img style="width: 2rem; height: 2rem" src="~/icons/live-streaming.svg"/>
+                                <a class="nav-link text-dark stretched-link" asp-area="" asp-controller="Home" asp-action="Index">Live</a>
+                            </div>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+                            <div>
+                                <img style="width: 1.8rem; height: 1.8rem; margin: 0.1rem 0" src="~/icons/subscription.svg" />
+                                <a class="nav-link text-dark stretched-link" asp-area="" asp-controller="Liver" asp-action="Index">Channels</a>
+                            </div>
                         </li>
+                        <li class="nav-item">
+                            <div>
+                                <img style="width: 2rem; height: 2rem" src="~/icons/multiview.svg" />
+                                <a class="nav-link text-dark stretched-link" href="/Multiview">MultiView</a>
+                            </div>
+                        </li>
+                        @if (User.IsInRole(_2434Tools.Data.ApplicationRoles.Administrators))
+                        {
+                            <li class="nav-item">
+                                <div>
+                                    <div style="width: 2rem; height: 2rem" id="groupsBackground"></div>
+                                    <a class="nav-link text-dark stretched-link" asp-area="" asp-controller="Group" asp-action="Index">Groups</a>
+                                </div>
+                            </li>
+                            <li class="nav-item">
+                                <form id="formSignOut" asp-controller="Account" asp-action="Logout" method="post">
+                                    <img style="width: 2rem; height: 2rem" src="~/icons/exit.svg" />
+                                    <button id="signOut" type="submit" class="nav-link btn btn-link text-dark stretched-link" tabindex="-1">Sign out</button>
+                                </form>
+                            </li>
+                        }
                     </ul>
                 </div>
-                @if (User.IsInRole(_2434Tools.Data.ApplicationRoles.Administrators))
-                {
-                <ul class="navbar-nav navbar-collapse collapse flex-grow-0 align-items-baseline">
-                    <li class="nav-item">
-                        <form id="formSignOut" class="form-inline" asp-controller="Account" asp-action="Logout" method="post">
-                            <button id="signOut" type="submit" class="nav-link btn btn-link text-dark">Sign out</button>
-                        </form>
-                    </li>
-                </ul>
-                }
             </div>
         </nav>
     </header>
@@ -43,8 +61,61 @@
         <main role="main" class="pb-3">
             @RenderBody()
         </main>
-    </div>
-
+    </div>  
+    <style>
+        #groupsBackground {
+            background: url("/icons/holoen-hug.jpg");
+            background-size: cover;
+            background-repeat: no-repeat;
+            background-position: center;
+            filter: grayscale();
+        }
+        .navbar {
+            padding: 0.6rem 1.2rem !important;
+        }
+        .nav-item > * {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+            padding: .4rem .4rem 0;
+            justify-content: space-between;
+        }
+        .nav-item a, .nav-item button {
+            font-size: 0.85rem;
+        }
+        .nav-link {
+            padding-bottom: 0;
+        }
+        .nav-item {
+            width: 5.7rem;
+            height: 4.2rem;
+        }
+        .nav-item:hover {
+            background: rgba(74, 74, 74, 0.2);
+        }
+        @@media screen and (max-width: 575px) {
+            .nav-item:first-of-type {
+                margin-top: 0.5rem;
+            }
+            .nav-item {
+                width: 100%;
+                display: flex;
+                align-items: center;    
+            }
+            .nav-item > * {
+                width: 100%;
+                flex-direction: row;
+                padding: .4rem .8rem;
+            }
+            .nav-link {
+                padding: 0;
+            }
+            .nav-item a, .nav-item button {
+                font-size: 1.2rem;
+            }
+        }
+    </style>
     <footer class="border-top footer text-muted">
         <div class="container">
             &copy; 2021 - _2434Tools - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>

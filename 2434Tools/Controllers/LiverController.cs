@@ -30,15 +30,23 @@ namespace _2434Tools.Controllers
         public async Task<IActionResult> Index(Int32? id)
         {
             if (id != null) return this.RedirectToAction("Details", new { id });
-            var Livers = await _context.Livers.ToListAsync();
-            ViewBag.Livers = Livers;
+            var GroupLivers = await _context.Groups.Include(_group => _group.Livers).ToListAsync();
+            ViewBag.GroupLivers = GroupLivers;
             return this.View();
         }
         // Details
         public async Task<IActionResult> Details(Int32 id)
         {
-            var Liver = await _context.Livers.SingleOrDefaultAsync(_liver => _liver.Id == id);
+            // Bad await usage
+            var Liver   = await _context.Livers.SingleOrDefaultAsync(_liver => _liver.Id == id);
+            if (Liver == null) return this.NotFound();
+            // Will take videos ordered by publish date. 
+            // Perhaps we should separate live and upcoming from the rest
+            var Videos = await _context.Videos.Where(_video => _video.LiverId == id)
+                                            .OrderByDescending(_video => _video.Published)
+                                            .Take(20).ToListAsync();
             ViewBag.Liver = Liver;
+            ViewBag.Videos = Videos;
             return this.View("Details");
         }
         #endregion
