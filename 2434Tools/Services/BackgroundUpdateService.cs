@@ -25,6 +25,7 @@ namespace _2434Tools.Services
         private Timer _LiverUpdateTimer;
         private Timer _FeedUpdateTimer;
         private Timer _VideoUpdateTimer;
+        private Timer _RecentUpdateTimer;
         private Boolean isUpdatingFeed = false;
 
         public BackgroundUpdateService(IServiceScopeFactory scopeFactory, ILogger<BackgroundUpdateService> logger)
@@ -44,6 +45,8 @@ namespace _2434Tools.Services
                 TimeSpan.FromSeconds(60.0d * Variables.UpdateFeedInterval));
             _VideoUpdateTimer = new Timer(UpdateVideos, null, TimeSpan.FromSeconds(30.0d),
                 TimeSpan.FromSeconds(60.0d * Variables.UpdateVideoInterval));
+            _RecentUpdateTimer = new Timer(UpdateRecentVideos, null, TimeSpan.Zero,
+                TimeSpan.FromHours(1));
 
             return Task.CompletedTask;
         }
@@ -81,7 +84,8 @@ namespace _2434Tools.Services
                 {
                     try
                     {
-                        foreach (var channel in (await responses[i]).Items)
+                        await responses[i];
+                        foreach (var channel in (responses[i]).Result.Items)
                         {
                             var Liver = Livers.Single(_liver => _liver.ChannelId == channel.Id);
                             Liver.ChannelName = channel.Snippet.Title;
@@ -109,7 +113,7 @@ namespace _2434Tools.Services
                         }
                     } catch(Exception e)
                     {
-                        _logger.LogInformation($"An exception has occured in UpdateLivers. Mesasge = {e.Message}");
+                        _logger.LogError($"An exception has occured in UpdateLivers. Mesasge = {e.Message}");
                     }
                 }
                 try
@@ -117,7 +121,7 @@ namespace _2434Tools.Services
                     await _db.SaveChangesAsync();
                 } catch(Exception ex)
                 {
-                    _logger.LogInformation($"Database update failed. Reason: {ex.Message}");
+                    _logger.LogError($"Database update failed. Reason: {ex.Message}");
                 }
             }
             _logger.LogInformation("Background service has finished updating livers.");
@@ -136,6 +140,7 @@ namespace _2434Tools.Services
                                                 .OrderBy(_liver => _liver.FeedChecked)
                                                 .Take(Variables.UpdateFeedBatch).ToListAsync();
                     List<Task<List<String>>> responses = new List<Task<List<String>>>(updateQueue.Count);
+                    // Potentially not thread-safe
                     for (int i = 0; i < updateQueue.Count; i++)
                     {
                         responses.Add(GetVideosIds(updateQueue[i].ChannelId));
@@ -174,7 +179,7 @@ namespace _2434Tools.Services
                     }
                     catch (Exception ex)
                     {
-                        _logger.LogInformation($"Database update failed. Reason: {ex.Message}");
+                        _logger.LogError($"Database update failed. Reason: {ex.Message}");
                     }
                 }
                 _logger.LogInformation("Background service has finished updating feeds.");
@@ -219,7 +224,8 @@ namespace _2434Tools.Services
                 {
                     try
                     {
-                        foreach (var response in (await requests[i]).Items)
+                        await requests[i];
+                        foreach (var response in (requests[i]).Result.Items)
                         {
                             String id = response.Id;
                             var video = videos.Single(_video => _video.Id == id);
@@ -230,7 +236,10 @@ namespace _2434Tools.Services
                             {
                                 video.Duration = (uint)(XmlConvert.ToTimeSpan(response.ContentDetails.Duration)).TotalSeconds;
                             }
-                            video.Views = (uint)response.Statistics.ViewCount;
+                            if (response.Statistics.ViewCount != null)
+                            {
+                                video.Views = (uint)response.Statistics.ViewCount;
+                            }
                             if(response.LiveStreamingDetails != null)
                             {
                                 if (response.LiveStreamingDetails.ActualStartTime != null)
@@ -275,14 +284,14 @@ namespace _2434Tools.Services
                             {
                                 video.PictureUrl = thumbs.Default__.Url;
                             }
-                            if(video.PictureUrl == null && response.Status.PrivacyStatus != "private")
+                            if(video.PictureUrl == null && response.Status.PrivacyStatus != "private" && response.Status.PrivacyStatus != "unlisted")
                             {
                                 video.Status = VideoStatus.Undefined;
                             }
                         }
                     } catch(Exception ex)
                     {
-                        _logger.LogInformation($"An exception has occured in UpdateVideos. Mesasge = {ex.Message}");
+                        _logger.LogError($"An exception has occured in UpdateVideos. Mesasge = {ex.Message}");
                     }
                 }
                 try
@@ -291,7 +300,7 @@ namespace _2434Tools.Services
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogInformation($"Database update failed. Reason: {ex.Message}");
+                    _logger.LogError($"Database update failed. Reason: {ex.Message}");
                 }
             }
             _logger.LogInformation("Background service has finished updating videos.");
@@ -308,28 +317,101 @@ namespace _2434Tools.Services
                 return regx.Matches(contentAsText).Select(_match => _match.Groups[1].Value).ToList();
             } else
             {
-                _logger.LogInformation($"Could not make for {channelId}. Reason = {response.StatusCode} : {response.ReasonPhrase}");
+                _logger.LogError($"Could account feed for {channelId}. Reason = {response.StatusCode} : {response.ReasonPhrase}");
                 return null;
             }
         }
 
+        private async void UpdateRecentVideos(object state)
+        {
+            _logger.LogInformation("Background service is updating recent videos...");
+            var _db = _scopeFactory.CreateScope().ServiceProvider.GetRequiredService<ApplicationDbContext>();
+            var youtubeService = new YouTubeService(new BaseClientService.Initializer()
+            {
+                ApiKey = Variables.API_KEY,
+                ApplicationName = this.GetType().ToString()
+            });
+            // 14 days
+            DateTime since = DateTime.UtcNow - new TimeSpan(14, 0, 0, 0);
+            var recent = await _db.Videos.Where(vid => vid.Status == VideoStatus.Finished && vid.Published > since).ToListAsync();
+            int k_groups = (recent.Count + 49) / 50;
+            List<Task<Google.Apis.YouTube.v3.Data.VideoListResponse>>
+                requests = new List<Task<Google.Apis.YouTube.v3.Data.VideoListResponse>>(k_groups);
+            for (int i = 0; i < k_groups; i++) requests.Add(null);
+            for (int i = 0; i < k_groups; i++)
+            {
+                int _start = i * 50, _end = Math.Min(_start + 50, recent.Count);
+                var video_request = youtubeService.Videos.List("snippet,statistics");
+                video_request.MaxResults = 50;
+                String VideoIds = recent[_start].Id;
+                for (int j = _start + 1; j < _end; j++)
+                {
+                    VideoIds += "," + recent[j].Id;
+                }
+                video_request.Id = VideoIds;
+                requests[i] = video_request.ExecuteAsync();
+            }
+            for (int i = 0; i < k_groups; i++)
+            {
+                await requests[i];
+                foreach(var video in (requests[i]).Result.Items)
+                {
+                    try {
+                        Video _videoEntity = null;
+                        int _start = i * 50, _end = Math.Min(_start + 50, recent.Count);
+                        for (int j = _start; j < _end; j++)
+                        {
+                            if(video.Id == recent[j].Id)
+                            {
+                                _videoEntity = recent[j];
+                                break;
+                            }
+                        }
+                        if(video.Statistics.ViewCount != null && video.Statistics.ViewCount > 0)
+                        {
+                            _videoEntity.Views = (uint)video.Statistics.ViewCount;
+                        }
+                        if(!String.IsNullOrEmpty(video.Snippet.Title))
+                        {
+                            _videoEntity.Title = video.Snippet.Title;
+                            _videoEntity.Description = video.Snippet.Description;
+                        }
+
+                    } catch (Exception e)
+                    {
+                        _logger.LogError($"An exception has occured in UpdateRecentVideos. Mesasge = {e.Message}");
+                    }
+                }
+            }
+            try
+            {
+                await _db.SaveChangesAsync();
+            } catch(Exception e)
+            {
+                _logger.LogError($"Database update during UpdateRecentVideos failed. Reason: {e.Message}");
+            }
+            _logger.LogInformation("Background service has finished updating recent videos.");
+        }
+
         public Task StopAsync(CancellationToken cancellationToken)
         {
-            _logger.LogInformation("Background Update Service is stopping...");
+            _logger.LogError("Background Update Service is stopping...");
 
             _LiverUpdateTimer?.Change(Timeout.Infinite, 0);
             _FeedUpdateTimer?.Change(Timeout.Infinite, 0);
             _VideoUpdateTimer?.Change(Timeout.Infinite, 0);
+            _RecentUpdateTimer?.Change(Timeout.Infinite, 0);
 
             return Task.CompletedTask;
         }
         public void Dispose()
         {
-            _logger.LogInformation("Disposing Background Update Service...");
+            _logger.LogError("Disposing Background Update Service...");
 
             _LiverUpdateTimer?.Dispose();
             _FeedUpdateTimer?.Dispose();
             _VideoUpdateTimer?.Dispose();
+            _RecentUpdateTimer?.Dispose();
         }
     }
 }
