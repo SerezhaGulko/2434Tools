@@ -59,7 +59,7 @@
 }
 
 .togglable-icon.contract {
-    transform: rotate(-180deg);
+    transform: rotate(-90deg);
 }
 
 /* Details
