@@ -146,7 +146,7 @@ namespace _2434Tools.Controllers
                 ApiKey = Variables.API_KEY,
                 ApplicationName = this.GetType().ToString()
             });
-            var channel_request = youtubeService.Channels.List("snippet, statistics");
+            var channel_request = youtubeService.Channels.List("snippet,statistics,brandingSettings");
             channel_request.Id = liver.ChannelId;
             try
             {
@@ -172,6 +172,10 @@ namespace _2434Tools.Controllers
                     liver.PictureURL = response.Snippet.Thumbnails.Default__.Url;
                 }
                 liver.ThumbURL = response.Snippet.Thumbnails.Default__.Url;
+                if (response.BrandingSettings.Image?.BannerExternalUrl != null)
+                {
+                    liver.BannerURL = response.BrandingSettings.Image.BannerExternalUrl;
+                }
             } catch(NullReferenceException)
             {
                 return false;
